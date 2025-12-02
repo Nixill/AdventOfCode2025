@@ -1,0 +1,6 @@
+[submodule "CSharp.Nixill"]
+	path = CSharp.Nixill
+	url = https://github.com/Nixill/CSharp.Nixill
+[submodule "AoC2025Data"]
+	path = AoC2025Data
+	url = https://github.com/Nixill/AoC2025Data
