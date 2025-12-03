@@ -1,0 +1,115 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/1"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+
+<h1>Day 1: Secret Entrance</h1>
+
+<p>There is a door in front of you. Its dial is currently set to @dial.</p>
+
+<p>
+  How many times has it moved to zero? Well, that depends on how you're counting, I suppose.
+</p>
+
+<ul>
+  <li>
+    If you're just counting the number of times it stopped at zero (part 1), that'd be @stopCount.
+  </li>
+  <li>
+    If you're counting the number of times it touched zero at all, even during a move (predicted part 2-A), then it's
+    @passCount.
+  </li>
+  <li>
+    Lastly, if you're counting the number of times it reached zero and then turned around (predicted part 2-B), then
+    it's @turnCount.
+  </li>
+</ul>
+
+<p>You can enter a single instruction to move the dial here:<br />
+  <TextInput @ref="instructionInput" ValueChanged="(value) => PerformInstruction(value)" /><br />
+  @lastOutput
+</p>
+
+<p>
+  You can also select a file to read all of its instructions at once:<br/>
+
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName + "/AoC2025Data/day1"))
+  {
+    <Button @onclick="() => ParseFile(file)">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the dial and counters by clicking <Button @onclick="() => ResetEverything()">here</Button>.
+</p>
+
+@code {
+  int dial = 50;
+  int passCount = 0;
+  int stopCount = 0;
+  int turnCount = 0;
+  bool movingLeft = false;
+  string lastOutput = "";
+
+  TextInput? instructionInput;
+
+  static Regex InstructionRegex = new(@"^[LR]\d+$", RegexOptions.IgnoreCase);
+
+  private void PerformInstruction(string line)
+  {
+    instructionInput!.Value = "";
+    Match mtc = InstructionRegex.Match(line);
+
+    if (!mtc.Success)
+    {
+      lastOutput = "That's not a valid instruction.";
+      return;
+    }
+
+    int turn = int.Parse(line[1..]);
+    bool flip = line[0] == 'L' || line[0] == 'l';
+
+    bool plusTurn = false;
+    bool plusStop = false;
+    int plusPass = 0;
+
+    // I'm just going to normalize the numbers with this
+    if (flip) dial = (100 - dial) % 100;
+    
+    if (dial == 0 && movingLeft != flip) plusTurn = true;
+    dial += turn;
+    plusPass = dial / 100;
+    dial %= 100;
+    plusStop = dial == 0;
+
+    if (flip) dial = (100 - dial) % 100;
+    movingLeft = flip;
+
+    lastOutput = $"The dial was turned {turn} clicks to the {(flip ? "left" : "right")}.";
+
+    if (plusTurn) lastOutput += " It started on zero after previously moving the opposite direction.";
+    if (plusPass > 0) lastOutput += $" It passed zero {plusPass} time{(plusPass == 1 ? "" : "s")}";
+    if (plusStop) lastOutput += ", including stopping on zero.";
+    else lastOutput += $". The dial is now on {dial}.";
+  }
+
+  void ParseFile(string fileName)
+  {
+    foreach (string line in File.ReadAllLines(fileName))
+    {
+      PerformInstruction(line);
+    }
+  }
+  
+  void ResetEverything()
+  {
+    dial = 50;
+    passCount = 0;
+    stopCount = 0;
+    turnCount = 0;
+    movingLeft = false;
+    lastOutput = "";
+  }
+}
