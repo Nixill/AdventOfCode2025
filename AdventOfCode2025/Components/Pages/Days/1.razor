@@ -18,32 +18,35 @@
     If you're just counting the number of times it stopped at zero (part 1), that'd be @stopCount.
   </li>
   <li>
-    If you're counting the number of times it touched zero at all, even during a move (predicted part 2-A), then it's
-    @passCount.
+    If you're counting the number of times it touched zero at all, even during a move (part 2), then it's @passCount.
   </li>
   <li>
-    Lastly, if you're counting the number of times it reached zero and then turned around (predicted part 2-B), then
-    it's @turnCount.
+    Lastly, if you're counting the number of times it reached zero and then turned around (a different thing I thought
+    part 2 might be), then it's @turnCount.
   </li>
 </ul>
 
 <p>You can enter a single instruction to move the dial here:<br />
   <TextInput @bind-Value="@textValue" />
-  <Button @onclick="() => AcceptInput()">Submit</Button><br />
+  <Button @onclick="() => AcceptInput()" Color="ButtonColor.Success">Submit</Button><br />
   @lastOutput
 </p>
 
 <p>
-  You can also select a file to read all of its instructions at once:<br/>
+  You can also select a file to read all of its instructions at once:<br />
 
-  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName + "/AoC2025Data/day1"))
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day1"))
   {
-    <Button @onclick="() => ParseFile(file)">@Path.GetFileName(file)</Button>
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
   }
 </p>
 
 <p>
-  And lastly, you can reset the dial and counters by clicking <Button @onclick="() => ResetEverything()">here</Button>.
+  And lastly, you can reset the dial and counters by clicking <Button @onclick="() => ResetEverything()" Color="ButtonColor.Danger">here</Button>.
 </p>
 
 @code {
@@ -82,7 +85,7 @@
 
     // I'm just going to normalize the numbers with this
     if (flip) dial = (100 - dial) % 100;
-    
+
     if (dial == 0 && movingLeft != flip) plusTurn = true;
     dial += turn;
     plusPass = dial / 100;
@@ -119,7 +122,7 @@
       PerformInstruction(line);
     }
   }
-  
+
   void ResetEverything()
   {
     dial = 50;
