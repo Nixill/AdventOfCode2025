@@ -28,7 +28,8 @@
 </ul>
 
 <p>You can enter a single instruction to move the dial here:<br />
-  <TextInput @ref="instructionInput" ValueChanged="(value) => PerformInstruction(value)" /><br />
+  <TextInput @bind-Value="@textValue" />
+  <Button @onclick="() => AcceptInput()">Submit</Button><br />
   @lastOutput
 </p>
 
@@ -52,14 +53,18 @@
   int turnCount = 0;
   bool movingLeft = false;
   string lastOutput = "";
-
-  TextInput? instructionInput;
+  string textValue = "";
 
   static Regex InstructionRegex = new(@"^[LR]\d+$", RegexOptions.IgnoreCase);
 
+  private void AcceptInput()
+  {
+    PerformInstruction(textValue);
+    textValue = "";
+  }
+
   private void PerformInstruction(string line)
   {
-    instructionInput!.Value = "";
     Match mtc = InstructionRegex.Match(line);
 
     if (!mtc.Success)
@@ -89,9 +94,21 @@
 
     lastOutput = $"The dial was turned {turn} clicks to the {(flip ? "left" : "right")}.";
 
-    if (plusTurn) lastOutput += " It started on zero after previously moving the opposite direction.";
-    if (plusPass > 0) lastOutput += $" It passed zero {plusPass} time{(plusPass == 1 ? "" : "s")}";
-    if (plusStop) lastOutput += ", including stopping on zero.";
+    if (plusTurn)
+    {
+      lastOutput += " It started on zero after previously moving the opposite direction.";
+      turnCount += 1;
+    }
+    if (plusPass > 0)
+    {
+      lastOutput += $" It passed zero {plusPass} time{(plusPass == 1 ? "" : "s")}";
+      passCount += plusPass;
+    }
+    if (plusStop)
+    {
+      lastOutput += ", including stopping on zero.";
+      stopCount += 1;
+    }
     else lastOutput += $". The dial is now on {dial}.";
   }
 
