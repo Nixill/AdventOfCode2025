@@ -1,0 +1,64 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/0"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.Collections
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+
+<h1>Day X: Template</h1>
+
+<p>Put some flavor text here!</p>
+
+<p>
+  <TextInput @bind-Value="@TextValue" /> <Button @onclick="() => AcceptInput()"
+    Color="ButtonColor.Success">Submit</Button>
+</p>
+
+<p>
+  You can also select a file to load all of its flavor text at once:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day2"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the flavor text by clicking <Button @onclick="() => ResetEverything()"
+    Color="ButtonColor.Danger">here</Button>.
+</p>
+
+@code
+{
+  string TextValue = "";
+
+  private void AcceptInput()
+  {
+    ParseLine(TextValue);
+    TextValue = "";
+  }
+
+  void ParseFile(string fileName)
+  {
+    foreach (string line in File.ReadAllLines(fileName))
+    {
+      ParseLine(line);
+    }
+  }
+
+  void ResetEverything()
+  {
+  }
+
+  static Regex RangeRegex = new(@"(\d+)-(\d+),?");
+
+  void ParseLine(string line)
+  {
+  }
+}
