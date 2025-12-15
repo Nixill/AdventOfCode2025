@@ -183,7 +183,7 @@
           }
 
           string highRept = highOpen.Repeat(i).FormString();
-          if (high.CompareTo(highRept) <= 0) check.Add(long.Parse(highRept));
+          if (high.CompareTo(highRept) >= 0) check.Add(long.Parse(highRept));
         }
       }
     }
