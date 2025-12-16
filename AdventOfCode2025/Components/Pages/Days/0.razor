@@ -22,7 +22,7 @@
 <p>
   You can also select a file to load all of its flavor text at once:<br />
   @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
-    "/AoC2025Data/day2"))
+    "/AoC2025Data/dayX"))
   {
     ButtonColor color;
     if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
