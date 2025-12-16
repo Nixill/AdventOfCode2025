@@ -1,7 +1,7 @@
 @namespace Nixill.AdventOfCode.Year2025
 @rendermode InteractiveServer
 
-@page "/days/3"
+@page "/days/3a"
 @using BlazorBootstrap
 @using System.Text.RegularExpressions
 @using Nixill.Collections
@@ -13,7 +13,7 @@
 <p>Welcome to the lobby. Please enter a battery below.</p>
 
 <p>
-<form @onsubmit="() => AcceptInput()" @formname="day-3-input">
+<form @onsubmit="() => AcceptInput()" @formname="day-3a-input">
   <TextInput @bind-Value="@TextValue" /> <Button @onclick="() => AcceptInput()"
     Color="ButtonColor.Success">Submit</Button>
 </form>
