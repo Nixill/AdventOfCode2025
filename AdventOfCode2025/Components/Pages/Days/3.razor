@@ -82,7 +82,7 @@
     foreach (Match match in matches)
     {
       BatteryBanks.Add(new D3BatteryBank(match.Value));
-    } 
+    }
   }
 
   public readonly record struct D3BatteryBank(string Code)
@@ -121,12 +121,11 @@
       string bank = Code;
       var keys = KeyBatteries;
       return @<span>
-          <span style="color:#7f7f7f">@bank[0..keys.Left.Position]</span>
-          <span style="font-weight:bold">@keys.Left.Value</span>
-          <span style="color:#7f7f7f">@bank[(keys.Left.Position + 1)..keys.Right.Position]</span>
-          <span style="font-weight:bold">@keys.Right.Value</span>
-          <span style="color:#7f7f7f">@bank[(keys.Right.Position + 1)..]</span>
-      </span>;
+          <span style="color:#7f7f7f">@bank[0..keys.Left.Position]</span><span
+            style="font-weight:bold">@keys.Left.Value</span><span style="color:#7f7f7f">@bank[(keys.Left.Position +
+            1)..keys.Right.Position]</span><span style="font-weight:bold">@keys.Right.Value</span><span
+    style="color:#7f7f7f">@bank[(keys.Right.Position + 1)..]</span>
+</span>;
     }
   }
 
