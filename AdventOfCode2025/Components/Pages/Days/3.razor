@@ -37,8 +37,8 @@
 </p>
 
 <p>
-  The following <b>@BatteryBanks.Count</b> battery banks are loaded. Their joltages sum to <b>@BatteryBanks.Select(b =>
-        b.Joltage).Sum()</b>.
+  The following <b>@BatteryBanks.Count</b> battery bank@(BatteryBanks.Count == 1 ? " is" : "s are") loaded. Their
+  joltages sum to <b>@BatteryBanks.Select(b => b.Joltage).Sum()</b>.
 </p>
 
 <ol>
