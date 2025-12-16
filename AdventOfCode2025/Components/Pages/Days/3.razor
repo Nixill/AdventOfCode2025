@@ -1,0 +1,153 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/3"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.Collections
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+
+<h1>Day 3: Lobby</h1>
+
+<p>Welcome to the lobby. Please enter a battery bank below.</p>
+
+<p>
+<form @onsubmit="() => AcceptInput()" @formname="day-X-input">
+  <TextInput @bind-Value="@TextValue" /> <Button @onclick="() => AcceptInput()"
+    Color="ButtonColor.Success">Submit</Button>
+</form>
+</p>
+
+<p>
+  You can also select a file to load all of its battery banks at once:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day3"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  You can reset the battery banks by clicking <Button @onclick="() => ResetEverything()"
+    Color="ButtonColor.Danger">here</Button>.
+</p>
+
+<p>
+  Lastly, the number of batteries that should be enabled from each battery bank is:
+  <NumberInput TValue="int" EnableMinMax Max="15" Min="1" @bind-Value="@BatteryCount" />
+</p>
+
+<p>
+  The following <b>@BatteryBanks.Count</b> battery bank@(BatteryBanks.Count == 1 ? " is" : "s are") loaded. Their
+  joltages sum to <b>@BatteryBanks.Select(b => b.GetJoltage(BatteryCount)).Sum()</b>.
+</p>
+
+<ol>
+  @foreach (D3BatteryBank bank in BatteryBanks)
+  {
+    <li>@bank.ToHTML(BatteryCount) ⇒ Joltage: @bank.GetJoltage(BatteryCount)</li>
+  }
+</ol>
+
+@code
+{
+  string TextValue = "";
+  int BatteryCount = 1;
+
+  List<D3BatteryBank> BatteryBanks = [];
+
+  private void AcceptInput()
+  {
+    ParseLine(TextValue);
+    TextValue = "";
+  }
+
+  void ParseFile(string fileName)
+  {
+    foreach (string line in File.ReadAllLines(fileName))
+    {
+      ParseLine(line);
+    }
+  }
+
+  void ResetEverything()
+  {
+    BatteryBanks = [];
+  }
+
+  static Regex BatteryRegex = new(@"(\d+)");
+
+  void ParseLine(string line)
+  {
+    MatchCollection matches = BatteryRegex.Matches(line);
+
+    foreach (Match match in matches)
+    {
+      BatteryBanks.Add(new D3BatteryBank(match.Value));
+    }
+  }
+
+  public readonly record struct D3BatteryBank(string Code)
+  {
+    private IEnumerable<D3BatteryID> GetKeyBatteries(int count)
+    {
+      if (count >= Code.Length) return FindAllBatteries();
+      else return FindKeyBatteries(count);
+    }
+
+    private IEnumerable<D3BatteryID> FindAllBatteries()
+    {
+      foreach (D3BatteryID id in Code.Index()) yield return id;
+    }
+
+    private IEnumerable<D3BatteryID> FindKeyBatteries(int count)
+    {
+      int offset = 0;
+
+      while (count > 0)
+      {
+        D3BatteryID battery = Code
+        .Index()
+        .SkipLast(count - 1)
+        .Skip(offset)
+        .MaxBy(t => t.Item);
+
+        yield return battery;
+        offset = battery.Position + 1;
+      }
+    }
+
+    public long GetJoltage(int count)
+    => long.Parse([.. GetKeyBatteries(count).Select(b => b.Value)]);
+
+    public RenderFragment ToHTML(int count)
+    {
+      int lastOffset = 0;
+      List<(string Faded, string Bolded)> texts = [];
+
+      foreach (var battery in GetKeyBatteries(count))
+      {
+        texts.Add((Code[lastOffset..battery.Value], new string(battery.Value, 1)));
+        lastOffset = battery.Value + 1;
+      }
+      texts.Add((Code[lastOffset..], ""));
+
+      return @<span>
+        @foreach ((string f, string b) in texts)
+        {
+          <span style="color:#7f7f7f">@f</span><span style="font-weight:bold">@b</span>
+        }
+      </span>;
+    }
+  }
+
+private readonly record struct D3BatteryID(int Position, char Value)
+{
+public static implicit operator D3BatteryID((int Index, char Char) source)
+=> new(source.Index, source.Char);
+}
+}
