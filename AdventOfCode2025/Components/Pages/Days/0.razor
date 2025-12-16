@@ -13,8 +13,10 @@
 <p>Put some flavor text here!</p>
 
 <p>
-  <TextInput @bind-Value="@TextValue" /> <Button @onclick="() => AcceptInput()"
-    Color="ButtonColor.Success">Submit</Button>
+  <form @onsubmit="() => AcceptInput()" @formname="day-X-input">
+    <TextInput @bind-Value="@TextValue" /> <Button @onclick="() => AcceptInput()"
+      Color="ButtonColor.Success">Submit</Button>
+  </form>
 </p>
 
 <p>
