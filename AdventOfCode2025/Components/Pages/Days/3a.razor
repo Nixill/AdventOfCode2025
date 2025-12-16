@@ -42,7 +42,7 @@
 </p>
 
 <ol>
-  @foreach (D3BatteryBank bank in BatteryBanks)
+  @foreach (D3aBatteryBank bank in BatteryBanks)
   {
     <li>@bank.ToHTML() ⇒ Joltage: @bank.Joltage</li>
   }
@@ -52,7 +52,7 @@
 {
   string TextValue = "";
 
-  List<D3BatteryBank> BatteryBanks = [];
+  List<D3aBatteryBank> BatteryBanks = [];
 
   private void AcceptInput()
   {
@@ -81,27 +81,27 @@
 
     foreach (Match match in matches)
     {
-      BatteryBanks.Add(new D3BatteryBank(match.Value));
+      BatteryBanks.Add(new D3aBatteryBank(match.Value));
     }
   }
 
-  public readonly record struct D3BatteryBank(string Code)
+  public readonly record struct D3aBatteryBank(string Code)
   {
-    private readonly record struct D3BatteryIDPair(D3BatteryID Left, D3BatteryID Right);
-    private readonly record struct D3BatteryID(int Position, int Value)
+    private readonly record struct D3aBatteryIDPair(D3aBatteryID Left, D3aBatteryID Right);
+    private readonly record struct D3aBatteryID(int Position, int Value)
     {
-      public static implicit operator D3BatteryID((int Index, char Char) source)
+      public static implicit operator D3aBatteryID((int Index, char Char) source)
       => new(source.Index, (int)source.Char - 48);
 
-      public D3BatteryID Offset(int offset) => new(this.Position + offset, this.Value);
+      public D3aBatteryID Offset(int offset) => new(this.Position + offset, this.Value);
     }
 
-    private D3BatteryIDPair KeyBatteries
+    private D3aBatteryIDPair KeyBatteries
     {
       get
       {
-        D3BatteryID left = Code.SkipLast(1).MaxWithFirstIndex();
-        D3BatteryID right = Code.Skip(left.Position + 1).MaxWithFirstIndex();
+        D3aBatteryID left = Code.SkipLast(1).MaxWithFirstIndex();
+        D3aBatteryID right = Code.Skip(left.Position + 1).MaxWithFirstIndex();
         right = right.Offset(left.Position + 1);
         return new(left, right);
       }
