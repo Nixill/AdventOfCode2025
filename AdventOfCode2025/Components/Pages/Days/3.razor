@@ -133,8 +133,8 @@
 
       foreach (var battery in GetKeyBatteries(count))
       {
-        texts.Add((Code[lastOffset..battery.Value], new string(battery.Value, 1)));
-        lastOffset = battery.Value + 1;
+        texts.Add((Code[lastOffset..battery.Position], new string(battery.Value, 1)));
+        lastOffset = battery.Position + 1;
       }
       texts.Add((Code[lastOffset..], ""));
 
