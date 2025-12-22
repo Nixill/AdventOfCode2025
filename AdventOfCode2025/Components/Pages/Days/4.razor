@@ -1,0 +1,147 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/4"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.Collections
+@using Nixill.Objects
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+@using IntGrid = Nixill.Collections.Grid<int>
+
+<h1>Day 4: Printing Department</h1>
+
+<p>Welcome to the printing department. Please enter the map of the layout below. Use <code>@@</code> for rolls of paper,
+  and <code>.</code> for open floors. (The map will be made rectangular by adding empty floors past the end of each
+  line.)</p>
+
+<p>
+<form @onsubmit="() => AcceptInput()" @formname="day-X-input">
+  <TextAreaInput @bind-Value="@MapText" style="font-family:monospace;" />
+</form>
+</p>
+
+<p>
+  You can also select a file to replace the map with the loaded file:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day4"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the map by clicking <Button @onclick="() => ResetEverything()"
+    Color="ButtonColor.Danger">here</Button>.
+</p>
+
+<p>
+  The warehouse is loaded below. You can view each stage of removals using the following slider:<br />
+  <RangeInput TValue="int" @bind-Value="ShowRound" @bind-Max="Rounds" Min="0" style="max-width:100px;" /><br />
+  You are currently viewing round <strong>@ShowRound</strong> of <strong>@Rounds</strong> of removals.
+  @if (ShowRound > 0)
+  {
+    <span>
+      There are <strong>@MapResult.Count2D(i => i > 0)</strong> rolls of paper and
+      <strong>@MapResult.Count2D(i => i == 0)</strong> empty floor spaces.
+    </span>
+  }
+  else
+  {
+    <span>
+      In round <strong>@ShowRound</strong>, <strong>@MapResult.Count2D(i => i == ShowRound)</strong> rolls of paper
+      have been removed, bringing the total to <strong>@MapResult.Count2D(i => i <= ShowRound)</strong>. There are
+      <strong>@MapResult.Count2D(i => i > ShowRound)</strong> rolls remaining.
+    </span>
+  }
+</p>
+
+<p style="font-family:monospace;">
+  @foreach (IEnumerable<int> row in MapResult)
+  {
+    <span>@GetLine(row)</span>
+  
+    <br />
+  }
+</p>
+
+@code
+{
+  string MapText = "";
+  IntGrid MapResult = [];
+  int Rounds = 0;
+  int ShowRound = 0;
+
+  private void AcceptInput()
+  {
+    ParseMap(MapText);
+  }
+
+  void ParseFile(string fileName)
+  {
+    MapText = File.ReadAllText(fileName);
+    ParseMap(MapText);
+  }
+
+  void ResetEverything()
+  {
+    MapText = "";
+    Rounds = 0;
+  }
+
+  static Regex RangeRegex = new(@"(\d+)-(\d+),?");
+
+  void ParseMap(string text)
+  {
+    // first let's figure out what newline was used in the text!
+    string[] splitLines = [];
+    if (text.Contains("\r\n")) splitLines = text.Split("\r\n");
+    else if (text.Contains("\n")) splitLines = text.Split("\n");
+    else if (text.Contains("\r")) splitLines = text.Split("\r");
+
+    // now reset the stats
+    Rounds = 0;
+    MapResult = splitLines.Select2D(c => c == '@' ? 1 : 0).ToGrid2D(0);
+
+    // and perform eliminations!
+    while (EliminateRolls() > 0) { }
+  }
+
+  int EliminateRolls()
+  {
+    Rounds++;
+    int count = 0;
+
+    foreach ((IntVector2 pos, int num) in MapResult.Flatten().Where(t => t.Item == Rounds))
+    {
+      if (MapResult.EightAdjacentCells(pos).Count(t => t.Item < Rounds) < 4)
+      {
+        count++;
+      }
+      else
+      {
+        MapResult[pos]++;
+      }
+    }
+
+    return count;
+  }
+
+  public MarkupString GetLine(IEnumerable<int> line)
+  {
+    return (MarkupString)line
+    .Select(i =>
+    (i > Rounds) ? '@' :
+    (i == Rounds) ? '-' :
+    (i > 0) ? 'x' : '.'
+    )
+    .SplitBetween((l, r) => l != r)
+    .Select(ce => ce.StringJoin(""))
+    .Select(s => $"<span style=\"color:#{s[0] switch { '-' => "3c3", 'x' => "33c", '.' => "777", _ => "000" }};\">{s}</span>")
+    .StringJoin("");
+  }
+}
