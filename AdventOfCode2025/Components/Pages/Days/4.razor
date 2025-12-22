@@ -118,7 +118,7 @@
 
     foreach ((IntVector2 pos, int num) in MapResult.Flatten().Where(t => t.Item == Rounds))
     {
-      if (MapResult.EightAdjacentCells(pos).Count(t => t.Item < Rounds) < 4)
+      if (MapResult.EightAdjacentCells(pos).Count(t => t.Item >= Rounds) < 4)
       {
         count++;
       }
@@ -135,8 +135,8 @@
   {
     return (MarkupString)line
     .Select(i =>
-    (i > Rounds) ? '@' :
-    (i == Rounds) ? '-' :
+    (i > ShowRound) ? '@' :
+    (i == ShowRound) ? '-' :
     (i > 0) ? 'x' : '.'
     )
     .SplitBetween((l, r) => l != r)
