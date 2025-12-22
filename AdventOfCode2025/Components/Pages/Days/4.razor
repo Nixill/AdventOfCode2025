@@ -54,8 +54,8 @@
   {
     <span>
       In round <strong>@ShowRound</strong>, <strong>@MapResult.Count2D(i => i == ShowRound)</strong> rolls of paper
-      have been removed, bringing the total to <strong>@MapResult.Count2D(i => i <= ShowRound)</strong>. There are
-      <strong>@MapResult.Count2D(i => i > ShowRound)</strong> rolls remaining.
+      have been removed, bringing the total to <strong>@MapResult.Count2D(i => i <= ShowRound && i > 0)</strong>. There
+      are <strong>@MapResult.Count2D(i => i > ShowRound)</strong> rolls remaining.
     </span>
   }
 </p>
@@ -81,6 +81,7 @@
 
   void ParseFile(string fileName)
   {
+    ResetEverything();
     MapText = File.ReadAllText(fileName);
     ParseMap(MapText);
   }
@@ -134,10 +135,9 @@
   {
     return (MarkupString)line
     .Select(i =>
+    (i == 0) ? '.' :
     (i > ShowRound) ? '@' :
-    (i == ShowRound) ? 'X' :
-    (i > 0) ? '-' : '.'
-    )
+    (i == ShowRound) ? 'X' : '-')
     .SplitBetween((l, r) => l != r)
     .Select(ce => ce.StringJoin(""))
     .Select(s => $"<span style=\"color:#{s[0] switch { 'X' => "3c3", '-' => "33c", '.' => "777", _ => "000" }};\">{s}</span>")
