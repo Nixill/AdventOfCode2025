@@ -43,7 +43,7 @@
   The warehouse is loaded below. You can view each stage of removals using the following slider:<br />
   <RangeInput TValue="int" @bind-Value="ShowRound" @bind-Max="Rounds" Min="0" style="max-width:100px;" /><br />
   You are currently viewing round <strong>@ShowRound</strong> of <strong>@Rounds</strong> of removals.
-  @if (ShowRound > 0)
+  @if (ShowRound == 0)
   {
     <span>
       There are <strong>@MapResult.Count2D(i => i > 0)</strong> rolls of paper and
