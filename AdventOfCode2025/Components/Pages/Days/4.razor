@@ -63,9 +63,7 @@
 <p style="font-family:monospace;">
   @foreach (IEnumerable<int> row in MapResult)
   {
-    <span>@GetLine(row)</span>
-  
-    <br />
+    <span>@GetLine(row)</span><br />
   }
 </p>
 
@@ -90,6 +88,7 @@
   void ResetEverything()
   {
     MapText = "";
+    MapResult = [];
     Rounds = 0;
   }
 
@@ -136,12 +135,12 @@
     return (MarkupString)line
     .Select(i =>
     (i > ShowRound) ? '@' :
-    (i == ShowRound) ? '-' :
-    (i > 0) ? 'x' : '.'
+    (i == ShowRound) ? 'X' :
+    (i > 0) ? '-' : '.'
     )
     .SplitBetween((l, r) => l != r)
     .Select(ce => ce.StringJoin(""))
-    .Select(s => $"<span style=\"color:#{s[0] switch { '-' => "3c3", 'x' => "33c", '.' => "777", _ => "000" }};\">{s}</span>")
+    .Select(s => $"<span style=\"color:#{s[0] switch { 'X' => "3c3", '-' => "33c", '.' => "777", _ => "000" }};\">{s}</span>")
     .StringJoin("");
   }
 }
