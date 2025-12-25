@@ -46,9 +46,12 @@
     </TitleTemplate>
     <Content>
       <ul>
-        @TestedProductIDs.Select(l =>
-          new MarkupString($"<li style=\"color:#{(ValidIDsInclusive.Contains(l) ? "42b42b" : "b42b42")}\">{l}</li>")
-        );
+        @foreach (MarkupString str in TestedProductIDs.Select(l =>
+          new MarkupString($"<li style=\"color:#{(ValidIDsAlternating.Contains(l) ? "42b42b" : "b42b42")}\">{l}</li>")
+        ))
+        {
+          @str
+        }
       </ul>
     </Content>
   </AccordionItem>
