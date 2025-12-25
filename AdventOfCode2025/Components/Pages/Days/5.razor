@@ -122,12 +122,12 @@
     foreach (var productID in TestedProductIDs)
     {
       var groupsInclusive = TestedProductIDs.GroupBy(l => ValidIDRangesInclusive.Contains(l)).ToDictionary();
-      ValidIDsInclusive = groupsInclusive[true].ToHashSet();
-      InvalidIDsInclusive = groupsInclusive[false].ToHashSet();
+      ValidIDsInclusive = (groupsInclusive.TryGetValue(true, out var a) ? a : []).ToHashSet();
+      InvalidIDsInclusive = (groupsInclusive.TryGetValue(false, out var b) ? b : []).ToHashSet();
 
       var groupsAlternating = TestedProductIDs.GroupBy(l => ValidIDRangesAlternating.Contains(l)).ToDictionary();
-      ValidIDsAlternating = groupsAlternating[true].ToHashSet();
-      InvalidIDsAlternating = groupsAlternating[false].ToHashSet();
+      ValidIDsAlternating = (groupsAlternating.TryGetValue(true, out var c) ? c : []).ToHashSet();
+      InvalidIDsAlternating = (groupsAlternating.TryGetValue(false, out var d) ? d : []).ToHashSet();
     }
   }
 
