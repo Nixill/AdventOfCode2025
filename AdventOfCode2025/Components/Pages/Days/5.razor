@@ -110,6 +110,9 @@
 
   private void ProcessInput()
   {
+    ValidIDRangesAlternating = [];
+    ValidIDRangesInclusive = [];
+
     foreach (var chunk in ValidProductRanges.Chunk(2))
     {
       ValidIDRangesInclusive.AddRange(chunk[0].Low, chunk[0].High + 1);
@@ -136,6 +139,8 @@
 
   void ParseFile(string fileName)
   {
+    ResetEverything();
+
     string text = File.ReadAllText(fileName);
     string[] chunks = text.Split(["\r\n\r\n", "\r\r", "\n\n"], StringSplitOptions.RemoveEmptyEntries);
 
@@ -147,6 +152,8 @@
   {
     ValidProductRanges = [];
     TestedProductIDs = [];
+    ValidIDRangesAlternating = [];
+    ValidIDRangesInclusive = [];
     ProcessInput();
   }
 }
