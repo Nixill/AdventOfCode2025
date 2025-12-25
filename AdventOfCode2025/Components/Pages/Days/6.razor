@@ -47,8 +47,8 @@
       <th>Part 1 equations below:</th>
       <th>Part 2 equations below:</th>
     </tr>
-    <tr>
-      @foreach (var equations in EquationPairs) {
+    @foreach (var equations in EquationPairs) {
+      <tr>
         <td>
           @equations.ValuesP1.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
           = <strong>@equations.ResultP1</strong>
@@ -57,8 +57,8 @@
           @equations.ValuesP2.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
           = <strong>@equations.ResultP2</strong>
         </td>
-      }
-    </tr>
+      </tr>
+    }
   </thead>
 </table>
 
