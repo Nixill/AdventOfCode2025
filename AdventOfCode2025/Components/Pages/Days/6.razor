@@ -21,7 +21,7 @@
 <p>
   You can also select a file to load all of its math equations at once:<br />
   @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
-    "/AoC2025Data/dayX"))
+    "/AoC2025Data/day6"))
   {
     ButtonColor color;
     if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
