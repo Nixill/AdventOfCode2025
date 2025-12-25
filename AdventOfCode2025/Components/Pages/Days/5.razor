@@ -37,7 +37,7 @@
 <Accordion>
   <AccordionItem>
     <TitleTemplate>
-      All ranges add: @ValidIDsInclusive valid IDs and @InvalidIDsInclusive invalid IDs
+      All ranges add: @ValidIDsInclusive.Count() valid IDs and @InvalidIDsInclusive.Count() invalid IDs
       (@ValidIDRangesInclusive.Sum(bsr => bsr.UpperBound.Key - bsr.LowerBound.Key) possible valid IDs)
     </TitleTemplate>
     <Content>
@@ -50,7 +50,7 @@
   </AccordionItem>
   <AccordionItem>
     <TitleTemplate>
-      Alternate add and remove: @ValidIDsAlternating valid IDs and @InvalidIDsAlternating invalid IDs
+      Alternate add and remove: @ValidIDsAlternating.Count() valid IDs and @InvalidIDsAlternating.Count() invalid IDs
       (@ValidIDRangesAlternating.Sum(bsr => bsr.UpperBound.Key - bsr.LowerBound.Key) possible valid IDs)
     </TitleTemplate>
     <Content>
