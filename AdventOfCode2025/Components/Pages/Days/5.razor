@@ -1,0 +1,145 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/5"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.Collections
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+
+<h1>Day 5: Cafeteria</h1>
+
+<div style="display: flex;">
+  <div style="width: 50%; padding: 20px;">
+    <p>Enter valid product ID ranges here:</p>
+    <TextAreaInput @bind-Value="@ValidProductRangesInput" />
+  </div>
+</div>
+
+<p>
+  You can also select a file to load all of its flavor text at once:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day5"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the fields by clicking <Button @onclick="() => ResetEverything()"
+    Color="ButtonColor.Danger">here</Button>.
+</p>
+
+<Accordion>
+  <AccordionItem>
+    <TitleTemplate>
+      All ranges add: @ValidIDsInclusive valid IDs and @InvalidIDsInclusive invalid IDs
+      (@ValidIDRangesInclusive.Sum(bsr => bsr.UpperBound.Key - bsr.LowerBound.Key) possible valid IDs)
+    </TitleTemplate>
+    <Content>
+      <ul>
+        @TestedProductIDs.Select(l =>
+          new MarkupString($"<li style=\"color:#{(ValidIDsInclusive.Contains(l) ? "42b42b" : "b42b42")}\">{l}</li>")
+        );
+      </ul>
+    </Content>
+  </AccordionItem>
+  <AccordionItem>
+    <TitleTemplate>
+      Alternate add and remove: @ValidIDsAlternating valid IDs and @InvalidIDsAlternating invalid IDs
+      (@ValidIDRangesAlternating.Sum(bsr => bsr.UpperBound.Key - bsr.LowerBound.Key) possible valid IDs)
+    </TitleTemplate>
+    <Content>
+      <ul>
+        @TestedProductIDs.Select(l =>
+          new MarkupString($"<li style=\"color:#{(ValidIDsAlternating.Contains(l) ? "42b42b" : "b42b42")}\">{l}</li>")
+        );
+      </ul>
+    </Content>
+  </AccordionItem>
+</Accordion>
+
+@code
+{
+  (long Low, long High)[] ValidProductRanges = [];
+  string ValidProductRangesInput 
+  {
+    get => string.Join("\n", ValidProductRanges.Select(t => $"{t.Low}-{t.High}"));
+    set
+    {
+      ValidProductRanges = value
+        .Split(["\n", "\r", "\r\n"], StringSplitOptions.RemoveEmptyEntries)
+        .SelectUnerrored(s => s.Split("-").Select(l => long.Parse(l)).Double())
+        .ToArray();
+      ProcessInput();
+    }
+  }
+
+  long[] TestedProductIDs = [];
+  string TestedProductIDsInput 
+  {
+    get => string.Join("\n", TestedProductIDs);
+    set
+    {
+      TestedProductIDs = value
+        .Split(["\n", "\r", "\r\n"], StringSplitOptions.RemoveEmptyEntries)
+        .SelectUnerrored(s => long.Parse(s))
+        .ToArray();
+      ProcessInput();
+    }
+  }
+
+  BlockSet<long> ValidIDRangesInclusive = [];
+  HashSet<long> InvalidIDsInclusive = [];
+  HashSet<long> ValidIDsInclusive = [];
+
+  BlockSet<long> ValidIDRangesAlternating = [];
+  HashSet<long> InvalidIDsAlternating = [];
+  HashSet<long> ValidIDsAlternating = [];
+
+  private void ProcessInput()
+  {
+    foreach (var chunk in ValidProductRanges.Chunk(2))
+    {
+      ValidIDRangesInclusive.AddRange(chunk[0].Low, chunk[0].High + 1);
+      ValidIDRangesAlternating.AddRange(chunk[0].Low, chunk[0].High + 1);
+
+      if (chunk.Length >= 2)
+      {
+        ValidIDRangesInclusive.AddRange(chunk[1].Low, chunk[1].High + 1);
+        ValidIDRangesAlternating.RemoveRange(chunk[1].Low, chunk[1].High + 1);
+      }
+    }
+
+    foreach (var productID in TestedProductIDs)
+    {
+      var groupsInclusive = TestedProductIDs.GroupBy(l => ValidIDRangesInclusive.Contains(l)).ToDictionary();
+      ValidIDsInclusive = groupsInclusive[true].ToHashSet();
+      InvalidIDsInclusive = groupsInclusive[false].ToHashSet();
+
+      var groupsAlternating = TestedProductIDs.GroupBy(l => ValidIDRangesAlternating.Contains(l)).ToDictionary();
+      ValidIDsAlternating = groupsAlternating[true].ToHashSet();
+      InvalidIDsAlternating = groupsAlternating[false].ToHashSet();
+    }
+  }
+
+  void ParseFile(string fileName)
+  {
+    string text = File.ReadAllText(fileName);
+    string[] chunks = text.Split(["\r\n\r\n", "\r\r", "\n\n"], StringSplitOptions.RemoveEmptyEntries);
+
+    ValidProductRangesInput = chunks[0];
+    TestedProductIDsInput = chunks[1];
+  }
+
+  void ResetEverything()
+  {
+    ValidProductRanges = [];
+    TestedProductIDs = [];
+    ProcessInput();
+  }
+}
