@@ -47,16 +47,18 @@
       <th>Part 1 equations below:</th>
       <th>Part 2 equations below:</th>
     </tr>
-    @foreach (var equations in EquationPairs) {
-      <td>
-        @equations.ValuesP1.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
-        = <strong>@equations.ResultP1</strong>
-      </td>
-      <td>
-        @equations.ValuesP2.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
-        = <strong>@equations.ResultP2</strong>
-      </td>
-    }
+    <tr>
+      @foreach (var equations in EquationPairs) {
+        <td>
+          @equations.ValuesP1.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
+          = <strong>@equations.ResultP1</strong>
+        </td>
+        <td>
+          @equations.ValuesP2.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
+          = <strong>@equations.ResultP2</strong>
+        </td>
+      }
+    </tr>
   </thead>
 </table>
 
