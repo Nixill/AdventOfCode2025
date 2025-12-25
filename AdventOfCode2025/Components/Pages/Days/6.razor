@@ -35,24 +35,50 @@
     Color="ButtonColor.Danger">here</Button>.
 </p>
 
-<p>
+<p>The equations may be viewed below:</p>
+
+<table style="border: 1px #b42b42; width: 500px;">
+  <thead>
+    <tr>
+      <th style="width: 50%;">Part 1 total: @TotalP1</th>
+      <th style="width: 50%;">Part 2 total: @TotalP2</th>
+    </tr>
+    <tr>
+      <th>Part 1 equations below:</th>
+      <th>Part 2 equations below:</th>
+    </tr>
+    @foreach (var equations in EquationPairs) {
+      <td>
+        @equations.ValuesP1.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
+        = <strong>@equations.ResultP1</strong>
+      </td>
+      <td>
+        @equations.ValuesP2.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
+        = <strong>@equations.ResultP2</strong>
+      </td>
+    }
+  </thead>
+</table>
+
+@* <p>
   The grand total of all equations is <strong>@Total</strong>. The equations are individually listed below:
 </p>
 
 <ol>
-  @foreach (var equation in Equations) {
+  @foreach (var equation in EquationPairs) {
     <li>
       @equation.Values.StringJoin($" {equation.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
       = <strong>@equation.Result</strong>
     </li>
   }
-</ol>
+</ol> *@
 
 @code
 {
   string MathSheet = "";
-  long Total = 0;
-  List<D6Equation> Equations = [];
+  long TotalP1 = 0;
+  long TotalP2 = 0;
+  List<D6EquationPair> EquationPairs = [];
 
   private void AcceptInput()
   {
@@ -72,42 +98,50 @@
 
   void ParseSheet()
   {
-    Total = 0;
-    Equations = [];
+    TotalP1 = 0;
+    TotalP2 = 0;
+    EquationPairs = [];
 
     CharGrid grid = MathSheet.Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries).ToGrid2D(' ');
 
     // Split into individual equations
     var transposedEquations = grid.Columns.SplitOn(col => col.All(c => c == ' '));
 
-    // Reform those equations
-    var equations = transposedEquations.Select(eq => eq.ToGrid2D(' ').Columns.Select(c => c.FormString()).ToArray());
+    @* // Reform those equations
+    var equations = transposedEquations.Select(eq => eq.ToGrid2D(' ').Columns.Select(c => c.FormString()).ToArray()); *@
 
-    foreach (string[] eqa in equations)
+    foreach (var eq in transposedEquations)
     {
-      var equation = eqa.Where(n => n.Trim() != "");
-      var numberLines = equation.SkipLast(1);
-      var numbers = numberLines.Select(s => long.Parse(s.Trim()));
-      var operation = equation.Last().Trim() switch {
+      // Part 1
+      var p1equation = eq.ToGrid2D(' ').Columns.Select(c => c.FormString()).Where(n => n.Trim() != "");
+      var numberLinesP1 = p1equation.SkipLast(1);
+      var numbersP1 = numberLinesP1.Select(s => long.Parse(s.Trim()));
+      var operation = p1equation.Last().Trim() switch {
         "+" => D6Operation.Addition,
         "*" => D6Operation.Multiplication,
         _ => D6Operation.Unknown
       };
-      var increasing = numbers.First() < numbers.Last();
-      var alignment = numberLines.Any(s => s.StartsWith(' ')) ? D6Alignment.RightAligned :
-        numberLines.Any(s => s.EndsWith(' ')) ? D6Alignment.LeftAligned : D6Alignment.Unknown;
 
-      var newEquation = new D6Equation(alignment, increasing, operation, numbers);
-      Equations.Add(newEquation);
-      Total += newEquation.Result;
+      // Part 2
+      var numbersP2 = eq.Select(e => long.Parse(e.SkipLast(1).FormString().Trim()));
+
+      var newEquations = new D6EquationPair(operation, numbersP1, numbersP2);
+      EquationPairs.Add(newEquations);
+      TotalP1 += newEquations.ResultP1;
+      TotalP2 += newEquations.ResultP2;
     }
   }
 
-  public record struct D6Equation(D6Alignment Alignment, bool Increasing, D6Operation Operation, params IEnumerable<long> Values)
+  public record struct D6EquationPair(D6Operation Operation, IEnumerable<long> ValuesP1, IEnumerable<long> ValuesP2)
   {
-    public long Result => Operation switch {
-      D6Operation.Multiplication => Values.Aggregate((l, r) => l * r),
-      _ => Values.Sum()
+    public long ResultP1 => Operation switch {
+      D6Operation.Multiplication => ValuesP1.Aggregate((l, r) => l * r),
+      _ => ValuesP1.Sum()
+    };
+
+    public long ResultP2 => Operation switch {
+      D6Operation.Multiplication => ValuesP2.Aggregate((l, r) => l * r),
+      _ => ValuesP2.Sum()
     };
   }
 
