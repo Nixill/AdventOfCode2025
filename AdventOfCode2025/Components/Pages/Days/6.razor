@@ -35,31 +35,33 @@
     Color="ButtonColor.Danger">here</Button>.
 </p>
 
-<p>The equations may be viewed below:</p>
+<p>The equations may be viewed below. Please note that for part 2, equations are read left-to-right </p>
 
-<table style="border: 1px #b42b42; width: 500px;">
+<table style="width: 900px;">
   <thead>
     <tr>
-      <th style="width: 50%;">Part 1 total: @TotalP1</th>
-      <th style="width: 50%;">Part 2 total: @TotalP2</th>
+      <th style="border: 1px solid #b42b42; width: 50%;">Part 1 total: @TotalP1</th>
+      <th style="border: 1px solid #b42b42; width: 50%;">Part 2 total: @TotalP2</th>
     </tr>
     <tr>
-      <th>Part 1 equations below:</th>
-      <th>Part 2 equations below:</th>
+      <th style="border: 1px solid #b42b42;">Part 1 equations below:</th>
+      <th style="border: 1px solid #b42b42;">Part 2 equations below:</th>
     </tr>
+  </thead>
+  <tbody>
     @foreach (var equations in EquationPairs) {
       <tr>
-        <td>
+        <td style="border: 1px solid #b42b42;">
           @equations.ValuesP1.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
           = <strong>@equations.ResultP1</strong>
         </td>
-        <td>
+        <td style="border: 1px solid #b42b42;">
           @equations.ValuesP2.StringJoin($" {equations.Operation switch {D6Operation.Multiplication => "×", _ => "+"}} ")
           = <strong>@equations.ResultP2</strong>
         </td>
       </tr>
     }
-  </thead>
+  </tbody>
 </table>
 
 @* <p>
