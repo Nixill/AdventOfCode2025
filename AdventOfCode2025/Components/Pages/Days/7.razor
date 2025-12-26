@@ -60,7 +60,7 @@
     int high = 0xCC;
     int mid = Random.Shared.Next(low, high + 1);
 
-    (int red, int green, int blue) = Enumerable.OrderBy([low, mid, high], Random.Shared.Next).Triple();
+    (int red, int green, int blue) = Enumerable.OrderBy<int, double>([low, mid, high], i => Random.Shared.NextDouble()).Triple();
 
     return $"{red:x2}{green:x2}{blue:x2}";
   }
