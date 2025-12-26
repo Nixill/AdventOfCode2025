@@ -124,7 +124,7 @@
   {
     StringBuilder line = new();
 
-    foreach (var group in inputs.ChunkBy(GetColor))
+    foreach (var group in inputs.ChunkBy(i => GetColor(i, isFirstLine)))
     {
       line.Append($"<span style=\"color: #{group.Key};\">{group.Select(i => GetOutputChar(i, isFirstLine)).FormString()}</span>");
     }
@@ -132,11 +132,12 @@
     return (MarkupString)(line.ToString());
   }
 
-  string GetColor(long input) => input switch
+  string GetColor(long input, bool isFirstLine) => input switch
   {
     -3 => "111111",
     -2 => RandomColor(),
-    -1 or 0 or 1 => "116622",
+    -1 or 0 => "116622",
+    1 => (isFirstLine ? "e6cb45" : "116622"),
     _ => LightColors[input]
   };
 
