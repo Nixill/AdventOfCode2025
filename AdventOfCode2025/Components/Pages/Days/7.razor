@@ -76,23 +76,26 @@
       }).ToGrid2D(0);
     
     // Process the whole map
-    foreach (int r in Enumerable.Range(1, TachyonMap.Height - 1))
+    foreach (int r in Enumerable.Range(0, TachyonMap.Height))
     {
-      foreach (int c in Enumerable.Range(0, TachyonMap.Width))
+      if (r > 0)
       {
-        IntVector2 current = GridRef.RC(r, c);
-        int beamsAbove = TachyonMap[current + IntVector2.Up];
-        if (TachyonMap[current + IntVector2.Up] > 0)
+        foreach (int c in Enumerable.Range(0, TachyonMap.Width))
         {
-          if (TachyonMap[current] == -1)
+          IntVector2 current = GridRef.RC(r, c);
+          int beamsAbove = TachyonMap[current + IntVector2.Up];
+          if (TachyonMap[current + IntVector2.Up] > 0)
           {
-            TachyonMap[current] = -2;
-            TachyonMap[current + IntVector2.Left] += beamsAbove;
-            TachyonMap[current + IntVector2.Right] += beamsAbove;
-          }
-          else
-          {
-            TachyonMap[current] += beamsAbove;
+            if (TachyonMap[current] == -1)
+            {
+              TachyonMap[current] = -2;
+              TachyonMap[current + IntVector2.Left] += beamsAbove;
+              TachyonMap[current + IntVector2.Right] += beamsAbove;
+            }
+            else
+            {
+              TachyonMap[current] += beamsAbove;
+            }
           }
         }
       }
