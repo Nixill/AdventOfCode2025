@@ -117,7 +117,7 @@
 
     // Process the numbers we care about
     Splits = TachyonMap.Count2D(i => i == -2);
-    Total = TachyonMap.Last().Where(i => i > 0).Sum();
+    Total = TachyonMap.LastOrDefault()?.Where(i => i > 0)?.Aggregate(0L, (a, i) => a + i) ?? 0;
   }
 
   MarkupString ParseLine(IEnumerable<int> inputs, bool isFirstLine)
