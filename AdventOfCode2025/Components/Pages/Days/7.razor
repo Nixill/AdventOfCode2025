@@ -1,0 +1,160 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/7"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.Collections
+@using Nixill.Objects
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+@using System.Text
+
+<h1>Day 7: Laboratories</h1>
+
+<p>Enter tachyon manifold diagram here:</p>
+
+<form @onsubmit="() => ParseInput()" @formname="day-7-input">
+  <TextAreaInput style="font-family:monospace;" @bind-Value="@TachyonDiagram" /> <Button @onclick="() => ParseInput()"
+    Color="ButtonColor.Success">Submit</Button>
+</form>
+
+<p>
+  You can also select a file to load its tachyon manifold diagram:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day7"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the tachyon manifold diagram, including resetting colors, by clicking
+    <Button @onclick="() => ResetEverything()" Color="ButtonColor.Danger">here</Button>.
+</p>
+
+<p>There are <strong>@Splits</strong> splits, and a total of <strong>@Total</strong> beams reach the bottom row.</p>
+
+<p style="background: #000; font-family: monospace;">
+  @foreach ((int index, var row) in TachyonMap.Index())
+  {
+    @:@ParseLine(row, index == 0)<br />
+  }
+</p>
+
+@code
+{
+  string TachyonDiagram = "";
+  Collections.Grid<int> TachyonMap = new(0, 0, 0);
+  int Splits = 0;
+  long Total = 0;
+
+  DictionaryGenerator<int, string> LightColors = new(i => RandomColor());
+
+  private static string RandomColor()
+  {
+    int low = 0x23;
+    int high = 0xCC;
+    int mid = Random.Shared.Next(low, high + 1);
+
+    (int red, int green, int blue) = Enumerable.OrderBy([low, mid, high], Random.Shared.Next).Triple();
+
+    return $"{red:x2}{green:x2}{blue:x2}";
+  }
+
+  private void ParseInput()
+  {
+    // Initialize map
+    TachyonMap = TachyonDiagram.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries)
+      .Select2D(chr => chr switch {
+        'S' => 1,
+        '^' => -1,
+        _ => 0
+      }).ToGrid2D(0);
+    
+    // Process the whole map
+    foreach (int r in Enumerable.Range(1, TachyonMap.Height - 1))
+    {
+      foreach (int c in Enumerable.Range(0, TachyonMap.Width))
+      {
+        IntVector2 current = GridRef.RC(r, c);
+        int beamsAbove = TachyonMap[current + IntVector2.Up];
+        if (TachyonMap[current + IntVector2.Up] > 0)
+        {
+          if (beamsAbove == -1)
+          {
+            TachyonMap[current] = -2;
+            TachyonMap[current + IntVector2.Left] += beamsAbove;
+            TachyonMap[current + IntVector2.Right] += beamsAbove;
+          }
+          else
+          {
+            TachyonMap[current] += beamsAbove;
+          }
+        }
+      }
+
+      for (int c = 0; true; c++)
+      {
+        IntVector2 current = GridRef.RC(r, c);
+        if (TachyonMap[current] == 0) TachyonMap[current] = -3;
+        else break;
+      }
+
+      for (int c = TachyonMap.Width - 1; true; c--)
+      {
+        IntVector2 current = GridRef.RC(r, c);
+        if (TachyonMap[current] == 0) TachyonMap[current] = -3;
+        else break;
+      }
+    }
+
+    // Process the numbers we care about
+    Splits = TachyonMap.Count2D(i => i == -2);
+    Total = TachyonMap.Last().Where(i => i > 0).Sum();
+  }
+
+  MarkupString ParseLine(IEnumerable<int> inputs, bool isFirstLine)
+  {
+    StringBuilder line = new();
+
+    foreach (var group in inputs.ChunkBy(GetColor))
+    {
+      line.Append($"<span style=\"color: #{group.Key};\">{group.Select(i => GetOutputChar(i, isFirstLine)).FormString()}</span>");
+    }
+
+    return (MarkupString)(line.ToString());
+  }
+
+  string GetColor(int input) => input switch
+  {
+    -3 => "111111",
+    -2 => RandomColor(),
+    -1 or 0 or 1 => "116622",
+    _ => LightColors[input]
+  };
+
+  char GetOutputChar(int input, bool isFirstLine) => input switch
+  {
+    -3 or 0 => '.',
+    -2 or -1 => '^',
+    1 => (isFirstLine ? 'S' : '|'),
+    _ => '|'
+  };
+
+  void ParseFile(string fileName)
+  {
+    TachyonDiagram = File.ReadAllText(fileName);
+    ParseInput();
+  }
+
+  void ResetEverything()
+  {
+    TachyonDiagram = "";
+    LightColors.Clear();
+    ParseInput();
+  }
+}
