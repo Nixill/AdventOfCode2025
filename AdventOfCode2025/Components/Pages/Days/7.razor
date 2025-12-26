@@ -48,11 +48,11 @@
 @code
 {
   string TachyonDiagram = "";
-  Collections.Grid<int> TachyonMap = new(0, 0, 0);
+  Collections.Grid<long> TachyonMap = new(0, 0, 0);
   int Splits = 0;
   long Total = 0;
 
-  DictionaryGenerator<int, string> LightColors = new(i => RandomColor());
+  DictionaryGenerator<long, string> LightColors = new(i => RandomColor());
 
   private static string RandomColor()
   {
@@ -70,9 +70,9 @@
     // Initialize map
     TachyonMap = TachyonDiagram.Split(["\r\n", "\n", "\r"], StringSplitOptions.RemoveEmptyEntries)
       .Select2D(chr => chr switch {
-        'S' => 1,
-        '^' => -1,
-        _ => 0
+        'S' => 1L,
+        '^' => -1L,
+        _ => 0L
       }).ToGrid2D(0);
     
     // Process the whole map
@@ -83,7 +83,7 @@
         foreach (int c in Enumerable.Range(0, TachyonMap.Width))
         {
           IntVector2 current = GridRef.RC(r, c);
-          int beamsAbove = TachyonMap[current + IntVector2.Up];
+          long beamsAbove = TachyonMap[current + IntVector2.Up];
           if (TachyonMap[current + IntVector2.Up] > 0)
           {
             if (TachyonMap[current] == -1)
@@ -120,7 +120,7 @@
     Total = TachyonMap.LastOrDefault()?.Where(i => i > 0)?.Aggregate(0L, (a, i) => a + i) ?? 0;
   }
 
-  MarkupString ParseLine(IEnumerable<int> inputs, bool isFirstLine)
+  MarkupString ParseLine(IEnumerable<long> inputs, bool isFirstLine)
   {
     StringBuilder line = new();
 
@@ -132,7 +132,7 @@
     return (MarkupString)(line.ToString());
   }
 
-  string GetColor(int input) => input switch
+  string GetColor(long input) => input switch
   {
     -3 => "111111",
     -2 => RandomColor(),
@@ -140,7 +140,7 @@
     _ => LightColors[input]
   };
 
-  char GetOutputChar(int input, bool isFirstLine) => input switch
+  char GetOutputChar(long input, bool isFirstLine) => input switch
   {
     -3 or 0 => '.',
     -2 or -1 => '^',
