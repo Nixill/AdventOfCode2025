@@ -1,0 +1,72 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/8"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.Collections
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+@using Nixill.Utils.Trials
+
+<h1>Day 8: Playground</h1>
+
+<p>Enter junction box coordinates here:</p>
+
+<p>
+  <form @onsubmit="() => ParseInput()" @formname="day-8-input">
+    <TextAreaInput style="font-family: monospace;" @bind-Value="@TextValue" />
+    <Button @onclick="() => ParseInput()" Color="ButtonColor.Success">Submit</Button>
+  </form>
+</p>
+
+<p>
+  You can also select a file to load all of its coordinates at once:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day8"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the coordinates by clicking <Button @onclick="() => ResetEverything()"
+    Color="ButtonColor.Danger">here</Button>.
+</p>
+
+@code
+{
+  string TextValue = "";
+  FailedTrialResult<(long, long, long)>[] Errors = [];
+
+  readonly record struct LongVector3(long X, long Y, long Z)
+  {
+    public long SquaredDistanceTo(LongVector3 other) => (X - other.X) * (X - other.X)
+      + (Y - other.Y) * (Y - other.Y) + (Z - other.Z) * (Z - other.Z);
+  }
+
+  private void ParseInput()
+  {
+    var trials = TextValue
+      .Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries)
+      .TrySelectSplit(s => s.Split(",", StringSplitOptions.TrimEntries).Select(s2 => long.Parse(s2)).Triple());
+    
+    Errors = [.. trials.Failures];
+
+    
+  }
+
+  void ParseFile(string fileName)
+  {
+    TextValue = File.ReadAllText(fileName);
+    ParseInput();
+  }
+
+  void ResetEverything()
+  {
+    TextValue = "";
+  }
+}
