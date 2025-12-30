@@ -56,6 +56,15 @@
   or <Button @onclick="() => JumpToJoin(true)" Disabled="@(ViewAtConnection >= ConnectionCount)">Next</Button> connection.
 </p>
 
+@if (ViewAtConnection > 0)
+{
+  <p>
+    Connection <strong>@ViewAtConnection</strong> joins nodes @Connections[ViewAtConnection].First.ToMarkup() and
+    @Connections[ViewAtConnection].Second.ToMarkup() over a distance of <strong>&Sqrt;@Connections[ViewAtConnection].Distance</strong>
+    (approximately @Math.Sqrt(Connections[ViewAtConnection].Distance)).
+  </p>
+}
+
 <p>
   After <strong>@ViewAtConnection</strong> connection(s), there are <strong>@GetNetworksAt(ViewAtConnection).Count()</strong>
   networks. From largest to smallest, they are:
@@ -92,6 +101,8 @@
 
     ViewAtConnection = 0;
     ConnectionCount = 0;
+
+    NetworkJoins = [0];
     
     Errors = [.. trials.Failures];
 
@@ -172,6 +183,7 @@
     Nodes = [];
     ViewAtConnection = 0;
     ConnectionCount = 0;
+    NetworkJoins = [0];
   }
 
   public readonly record struct IntVector3(int X, int Y, int Z)
@@ -184,6 +196,8 @@
       => ((long)X - (long)other.X) * ((long)X - (long)other.X)
         + ((long)Y - (long)other.Y) * ((long)Y - (long)other.Y)
         + ((long)Z - (long)other.Z) * ((long)Z - (long)other.Z);
+
+    public override string ToString() => $"({X}, {Y}, {Z})";
   }
 
   public readonly record struct NetworkNode(int ID, IntVector3 Position)
@@ -192,6 +206,9 @@
     public readonly AVLTreeDictionary<int, int> ConnectionCount = [new(0, 0)];
     public readonly HashSet<int> NodesInNetwork = [ID];
     public readonly string Color = Functions.RandomColor();
+
+    public MarkupString ToMarkup() =>
+      new MarkupString($"<span style=\"color: #{Color}\"><strong>#{ID}</strong> @{Position}</span>");
   }
 
   public readonly record struct NetworkRecord(int Size, int JoinedWith);
