@@ -49,8 +49,8 @@
   There are <strong>@Nodes.Count</strong> nodes loaded, which can form a network of
   <strong>@Connections.Length</strong> connections. Please select below which connection you would
   like to view:<br/>
-  <RangeInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width:100px;" />
-  <NumberInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" />
+  <RangeInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width: 100px;" />
+  <NumberInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width: 100px;" />
 </p>
 
 <p>
@@ -104,22 +104,23 @@
     // Now iterate the list of connections
     foreach ((int i, (NetworkNode firstNode, NetworkNode secondNode, long squaredDistance)) in Connections.Index())
     {
-      NetworkNode firstNetwork = GetNetwork(firstNode.ID, i);
-      NetworkNode secondNetwork = GetNetwork(secondNode.ID, i);
+      int c = i + 1;
+      NetworkNode firstNetwork = GetNetwork(firstNode.ID, c);
+      NetworkNode secondNetwork = GetNetwork(secondNode.ID, c);
 
       if (firstNetwork.ID == secondNetwork.ID)
       {
-        firstNetwork.ConnectionCount.Add(i, firstNetwork.ConnectionCount.FloorEntry(i).Value + 1);
+        firstNetwork.ConnectionCount.Add(c, firstNetwork.ConnectionCount.FloorEntry(i).Value + 1);
       }
       else
       {
         firstNetwork.NodesInNetwork.UnionWith(secondNetwork.NodesInNetwork);
-        firstNetwork.ConnectionCount.Add(i,
+        firstNetwork.ConnectionCount.Add(c,
           firstNetwork.ConnectionCount.FloorEntry(i).Value + secondNetwork.ConnectionCount.FloorEntry(i).Value + 1);
-        firstNetwork.History.Add(i, new(firstNetwork.NodesInNetwork.Count, secondNetwork.ID));
+        firstNetwork.History.Add(c, new(firstNetwork.NodesInNetwork.Count, secondNetwork.ID));
         foreach (int node in secondNetwork.NodesInNetwork)
         {
-          Nodes[node].History.Add(i, new(0, firstNetwork.ID));
+          Nodes[node].History.Add(c, new(0, firstNetwork.ID));
         }
       }
     }
