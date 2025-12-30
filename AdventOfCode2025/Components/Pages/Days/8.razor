@@ -50,7 +50,8 @@
   <strong>@Connections.Length</strong> connections. Please select below which connection you would
   like to view:<br/>
   <RangeInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width: 100px;" />
-  <NumberInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width: 100px;" />
+  <NumberInput TValue="int" @bind-Value="ViewAtConnection" EnableMinMax="true" @bind-Max="ConnectionCount" Min="0"
+    style="max-width: 100px;" />
 </p>
 
 <p>
@@ -114,6 +115,7 @@
       }
       else
       {
+        if (firstNetwork.ID > secondNetwork.ID) (firstNetwork, secondNetwork) = (secondNetwork, firstNetwork);
         firstNetwork.NodesInNetwork.UnionWith(secondNetwork.NodesInNetwork);
         firstNetwork.ConnectionCount.Add(c,
           firstNetwork.ConnectionCount.FloorEntry(i).Value + secondNetwork.ConnectionCount.FloorEntry(i).Value + 1);
