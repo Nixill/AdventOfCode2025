@@ -49,9 +49,11 @@
   There are <strong>@Nodes.Count</strong> nodes loaded, which can form a network of
   <strong>@Connections.Length</strong> connections. Please select below which connection you would
   like to view:<br/>
-  <RangeInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width: 100px;" />
+  <RangeInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" />
   <NumberInput TValue="int" @bind-Value="ViewAtConnection" EnableMinMax="true" @bind-Max="ConnectionCount" Min="0"
-    style="max-width: 100px;" />
+    style="max-width: 100px;" /><br/>
+  You can also jump to the <Button @onclick="() => JumpToJoin(false)" Disabled="@(ViewAtConnection <= 0)">Previous</Button>
+  or <Button @onclick="() => JumpToJoin(true)" Disabled="@(ViewAtConnection >= ConnectionCount)">Next</Button> connection.
 </p>
 
 <p>
@@ -75,10 +77,12 @@
   FailedTrialResult<IntVector3>[] Errors = [];
 
   List<NetworkNode> Nodes = [];
-  (NetworkNode First, NetworkNode Second, long Distance)[] Connections = [];
+  NodeConnection[] Connections = [];
 
   int ViewAtConnection = 0;
   int ConnectionCount = 0;
+
+  AVLTreeSet<int> NetworkJoins = [0];
 
   private void ParseInput()
   {
@@ -96,7 +100,7 @@
     // Build the list of connections next
     Connections = Nodes.Combinations(2)
       .Select(e => e.Double())
-      .Select(t => (First: t.First, Second: t.Second,
+      .Select(t => new NodeConnection(First: t.First, Second: t.Second,
         Distance: t.First.Position.SquaredDistanceTo(t.Second.Position)))
       .OrderBy(t => t.Distance).ToArray();
     
@@ -124,8 +128,12 @@
         {
           Nodes[node].History.Add(c, new(0, firstNetwork.ID));
         }
+
+        NetworkJoins.Add(c);
       }
     }
+
+    NetworkJoins.Add(ConnectionCount);
   }
 
   NetworkNode GetNetwork(int ofNode, int atPoint)
@@ -144,6 +152,12 @@
   IEnumerable<NetworkNode> GetNetworksAt(int point)
     => Nodes.Where(n => n.History.FloorEntry(point).Value.Size > 0)
       .OrderByDescending(n => n.History.FloorEntry(point).Value.Size);
+  
+  void JumpToJoin(bool forwards)
+  {
+    if (forwards) ViewAtConnection = NetworkJoins.Higher(ViewAtConnection);
+    else ViewAtConnection = NetworkJoins.Lower(ViewAtConnection);
+  }
 
   void ParseFile(string fileName)
   {
@@ -181,4 +195,6 @@
   }
 
   public readonly record struct NetworkRecord(int Size, int JoinedWith);
+
+  public readonly record struct NodeConnection(NetworkNode First, NetworkNode Second, long Distance);
 }
