@@ -59,9 +59,9 @@
 @if (ViewAtConnection > 0)
 {
   <p>
-    Connection <strong>@ViewAtConnection</strong> joins nodes @Connections[ViewAtConnection].First.ToMarkup() and
-    @Connections[ViewAtConnection].Second.ToMarkup() over a distance of <strong>&Sqrt;@Connections[ViewAtConnection].Distance</strong>
-    (approximately @Math.Sqrt(Connections[ViewAtConnection].Distance)).
+    Connection <strong>@ViewAtConnection</strong> joins nodes @Connections[ViewAtConnection - 1].First.ToMarkup() and
+    @Connections[ViewAtConnection - 1].Second.ToMarkup() over a distance of <strong>&Sqrt;@Connections[ViewAtConnection - 1].Distance</strong>
+    (approximately @Math.Sqrt(Connections[ViewAtConnection - 1].Distance)).
   </p>
 }
 
