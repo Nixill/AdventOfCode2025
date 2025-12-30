@@ -8,10 +8,11 @@
 @using Nixill.Utils
 @using Nixill.Utils.Extensions
 @using Nixill.Utils.Trials
+@using Nixill.Utils.ValueExtensions
 
 <h1>Day 8: Playground</h1>
 
-<p>Enter junction box coordinates here:</p>
+<p>Enter junction box node coordinates here:</p>
 
 <p>
   <form @onsubmit="() => ParseInput()" @formname="day-8-input">
@@ -20,8 +21,15 @@
   </form>
 </p>
 
+@if (Errors.Length > 0)
+{
+  <p style="color:#c33;">
+    The following lines could not be parsed into coordinates: @Errors.Select(r => r.Index).StringJoin(", ");
+  </p>
+}
+
 <p>
-  You can also select a file to load all of its coordinates at once:<br />
+  You can also select a file to load all of its nodes at once:<br />
   @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
     "/AoC2025Data/day8"))
   {
@@ -33,31 +41,106 @@
 </p>
 
 <p>
-  And lastly, you can reset the coordinates by clicking <Button @onclick="() => ResetEverything()"
+  And lastly, you can reset the nodes by clicking <Button @onclick="() => ResetEverything()"
     Color="ButtonColor.Danger">here</Button>.
+</p>
+
+<p>
+  There are <strong>@Nodes.Count</strong> nodes loaded, which can form a network of
+  <strong>@Connections.Length</strong> connections. Please select below which connection you would
+  like to view:<br/>
+  <RangeInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" style="max-width:100px;" />
+  <NumberInput TValue="int" @bind-Value="ViewAtConnection" @bind-Max="ConnectionCount" Min="0" />
+</p>
+
+<p>
+  After <strong>@ViewAtConnection</strong> connection(s), there are <strong>@GetNetworksAt(ViewAtConnection).Count()</strong>
+  networks. From largest to smallest, they are:
+
+  <ul>
+    @foreach (NetworkNode network in GetNetworksAt(ViewAtConnection))
+    {
+      <li style="color: #@network.Color">
+        <b>@network.ID</b>: @network.History.FloorEntry(ViewAtConnection).Value.Size nodes,
+        @network.ConnectionCount.FloorEntry(ViewAtConnection).Value connections
+      </li>
+    }
+  </ul>
 </p>
 
 @code
 {
   string TextValue = "";
-  FailedTrialResult<(long, long, long)>[] Errors = [];
+  FailedTrialResult<IntVector3>[] Errors = [];
 
-  readonly record struct LongVector3(long X, long Y, long Z)
-  {
-    public long SquaredDistanceTo(LongVector3 other) => (X - other.X) * (X - other.X)
-      + (Y - other.Y) * (Y - other.Y) + (Z - other.Z) * (Z - other.Z);
-  }
+  List<NetworkNode> Nodes = [];
+  (NetworkNode First, NetworkNode Second, long Distance)[] Connections = [];
+
+  int ViewAtConnection = 0;
+  int ConnectionCount = 0;
 
   private void ParseInput()
   {
     var trials = TextValue
       .Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries)
-      .TrySelectSplit(s => s.Split(",", StringSplitOptions.TrimEntries).Select(s2 => long.Parse(s2)).Triple());
+      .TrySelectSplit(s => IntVector3.Parse(s));
+
+    ViewAtConnection = 0;
+    ConnectionCount = 0;
     
     Errors = [.. trials.Failures];
 
+    Nodes = [.. trials.Successes.Select((itm, ind) => new NetworkNode(ind, itm.Result))];
+
+    // Build the list of connections next
+    Connections = Nodes.Combinations(2)
+      .Select(e => e.Double())
+      .Select(t => (First: t.First, Second: t.Second,
+        Distance: t.First.Position.SquaredDistanceTo(t.Second.Position)))
+      .OrderBy(t => t.Distance).ToArray();
     
+    ConnectionCount = Connections.Length;
+    
+    // Now iterate the list of connections
+    foreach ((int i, (NetworkNode firstNode, NetworkNode secondNode, long squaredDistance)) in Connections.Index())
+    {
+      NetworkNode firstNetwork = GetNetwork(firstNode.ID, i);
+      NetworkNode secondNetwork = GetNetwork(secondNode.ID, i);
+
+      if (firstNetwork.ID == secondNetwork.ID)
+      {
+        firstNetwork.ConnectionCount.Add(i, firstNetwork.ConnectionCount.FloorEntry(i).Value + 1);
+      }
+      else
+      {
+        firstNetwork.NodesInNetwork.UnionWith(secondNetwork.NodesInNetwork);
+        firstNetwork.ConnectionCount.Add(i,
+          firstNetwork.ConnectionCount.FloorEntry(i).Value + secondNetwork.ConnectionCount.FloorEntry(i).Value + 1);
+        firstNetwork.History.Add(i, new(firstNetwork.NodesInNetwork.Count, secondNetwork.ID));
+        foreach (int node in secondNetwork.NodesInNetwork)
+        {
+          Nodes[node].History.Add(i, new(0, firstNetwork.ID));
+        }
+      }
+    }
   }
+
+  NetworkNode GetNetwork(int ofNode, int atPoint)
+  {
+    NetworkNode node = Nodes[ofNode];
+    var floorValue = node.History.FloorEntry(atPoint).Value;
+    while (floorValue.Size == 0)
+    {
+      node = Nodes[floorValue.JoinedWith];
+      floorValue = node.History.FloorEntry(atPoint).Value;
+    }
+
+    return node;
+  }
+
+  IEnumerable<NetworkNode> GetNetworksAt(int point)
+    => Nodes.Where(n => n.History.FloorEntry(point).Value.Size > 0)
+      .OrderByDescending(n => n.History.FloorEntry(point).Value.Size);
 
   void ParseFile(string fileName)
   {
@@ -68,5 +151,31 @@
   void ResetEverything()
   {
     TextValue = "";
+    Errors = [];
+    Nodes = [];
+    ViewAtConnection = 0;
+    ConnectionCount = 0;
   }
+
+  public readonly record struct IntVector3(int X, int Y, int Z)
+  {
+    public static IntVector3 Parse(string input)
+      => input.Split(",").Select(s => int.Parse(s)).Triple()
+        .Mutate(t => new IntVector3(t.First, t.Second, t.Third));
+
+    public long SquaredDistanceTo(IntVector3 other)
+      => ((long)X - (long)other.X) * ((long)X - (long)other.X)
+        + ((long)Y - (long)other.Y) * ((long)Y - (long)other.Y)
+        + ((long)Z - (long)other.Z) * ((long)Z - (long)other.Z);
+  }
+
+  public readonly record struct NetworkNode(int ID, IntVector3 Position)
+  {
+    public readonly AVLTreeDictionary<int, NetworkRecord> History = [new(0, new(1, ID))];
+    public readonly AVLTreeDictionary<int, int> ConnectionCount = [new(0, 0)];
+    public readonly HashSet<int> NodesInNetwork = [ID];
+    public readonly string Color = Functions.RandomColor();
+  }
+
+  public readonly record struct NetworkRecord(int Size, int JoinedWith);
 }

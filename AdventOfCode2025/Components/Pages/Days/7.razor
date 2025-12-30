@@ -52,18 +52,7 @@
   int Splits = 0;
   long Total = 0;
 
-  DictionaryGenerator<long, string> LightColors = new(i => RandomColor());
-
-  private static string RandomColor()
-  {
-    int low = 0x23;
-    int high = 0xCC;
-    int mid = Random.Shared.Next(low, high + 1);
-
-    (int red, int green, int blue) = Enumerable.OrderBy<int, double>([low, mid, high], i => Random.Shared.NextDouble()).Triple();
-
-    return $"{red:x2}{green:x2}{blue:x2}";
-  }
+  DictionaryGenerator<long, string> LightColors = new(i => Functions.RandomColor());
 
   private void ParseInput()
   {
@@ -135,7 +124,7 @@
   string GetColor(long input, bool isFirstLine) => input switch
   {
     -3 => "111111",
-    -2 => RandomColor(),
+    -2 => Functions.RandomColor(),
     -1 or 0 => "116622",
     1 => (isFirstLine ? "e6cb45" : "116622"),
     _ => LightColors[input]
