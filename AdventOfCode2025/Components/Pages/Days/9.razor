@@ -1,0 +1,104 @@
+@namespace Nixill.AdventOfCode.Year2025
+@rendermode InteractiveServer
+
+@page "/days/9"
+@using BlazorBootstrap
+@using System.Text.RegularExpressions
+@using Nixill.AdventOfCode.Year2025.Modules
+@using Nixill.Collections
+@using Nixill.Objects
+@using Nixill.Utils
+@using Nixill.Utils.Extensions
+
+<h1>Day 9: Template</h1>
+
+<p>Enter red tile coordinates here!</p>
+
+<p>
+  <form @onsubmit="() => ParseInput()" @formname="day-9-input">
+    <TextAreaInput style="font-family: monospace;" @bind-Value="@TextValue" />
+    <Button @onclick="() => ParseInput()" Color="ButtonColor.Success">Submit</Button>
+  </form>
+</p>
+
+<p>
+  You can also select a file to load all of its coordinates at once:<br />
+  @foreach (var file in Directory.EnumerateFiles(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName +
+    "/AoC2025Data/day9"))
+  {
+    ButtonColor color;
+    if (Path.GetFileName(file) == "input.txt") color = ButtonColor.Primary;
+    else color = ButtonColor.Secondary;
+    <Button @onclick="() => ParseFile(file)" Color="color">@Path.GetFileName(file)</Button>
+  }
+</p>
+
+<p>
+  And lastly, you can reset the coordinates by clicking <Button @onclick="() => ResetEverything()"
+    Color="ButtonColor.Danger">here</Button>.
+</p>
+
+<p>
+  The map of the room can be viewed below:
+</p>
+
+<svg width="1100" height="1100" viewbox="-50 -50 1100 1100">
+  <rect x="@LargestRug.First.X" y="@LargestRug.First.Y" width="@(LargestRug.Second.X - LargestRug.First.X + 1)"
+    height="@(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
+  @foreach (IntVector2 cPair in Coordinates)
+  {
+    string style = (cPair == LargestRug.First ||cPair == LargestRug.Second)
+      ? "color: #c33; stroke-color: #000; stroke-width: 2px;" : "fill: #000; stroke: none";
+    <circle cx="@GetCoordinate(cPair.X + 0.5)" cy="@GetCoordinate(cPair.Y + 0.5)" r="3" style="@style" />
+  }
+</svg>
+
+@code
+{
+  string TextValue = "";
+  List<IntVector2> Coordinates = [];
+  int LowCoordinate = int.MaxValue;
+  int HighCoordinate = int.MinValue;
+  (IntVector2 First, IntVector2 Second) LargestRug = default;
+
+  private void ParseInput()
+  {
+    Coordinates = [];
+    LowCoordinate = int.MaxValue;
+    HighCoordinate = int.MinValue;
+
+    foreach (string line in TextValue.SplitLines())
+    {
+      if (IntVector2.TryParse(line, out IntVector2 value))
+      {
+        Coordinates.Add(value);
+        LowCoordinate = int.Min(int.Min(value.X, value.Y), LowCoordinate);
+        HighCoordinate = int.Max(int.Max(value.X, value.Y), HighCoordinate);
+      }
+
+      HighCoordinate += 1;
+    }
+
+    LargestRug = Coordinates.Combinations(2)
+      .Select(e => e.Double())
+      .MaxBy(t => (int.Abs(t.First.X - t.Second.X) + 1) * (int.Abs(t.First.Y - t.Second.Y) + 1));
+    
+    if (LargestRug.First.X > LargestRug.Second.X) LargestRug = (LargestRug.Second, LargestRug.First);
+    if (LargestRug.First.Y > LargestRug.Second.Y)
+      LargestRug = ((LargestRug.First.X, LargestRug.Second.Y), (LargestRug.Second.X, LargestRug.First.Y));
+  }
+
+  public double GetCoordinate(double from)
+    => NumberUtils.ReLerp(from, LowCoordinate, HighCoordinate, 0, 1000);
+
+  void ParseFile(string fileName)
+  {
+    TextValue = File.ReadAllText(fileName);
+    ParseInput();
+  }
+
+  void ResetEverything()
+  {
+    TextValue = "";
+  }
+}

@@ -88,4 +88,7 @@ public static class InputFileExtensions
 
   public static void PrintGrid(this IGrid<char> chars)
     => chars.Do(l => Console.WriteLine(l.FormString()));
+
+  public static string[] SplitLines(this string input)
+    => input.Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
 }
