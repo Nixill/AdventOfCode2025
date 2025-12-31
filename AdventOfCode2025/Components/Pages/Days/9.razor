@@ -54,7 +54,9 @@
     height="@GetCoordinateLength(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
   @foreach (IntVector2 cPair in Coordinates)
   {
-    string style = (cPair == LargestRug.First ||cPair == LargestRug.Second)
+    string style = (cPair == LargestRug.First || cPair == LargestRug.Second ||
+      cPair == (LargestRug.First.X, LargestRug.Second.Y) ||
+      cPair == (LargestRug.Second.X, LargestRug.First.Y))
       ? "color: #c33; stroke-color: #000; stroke-width: 2px;" : "fill: #000; stroke: none";
     <circle cx="@GetCoordinate(cPair.X + 0.5)" cy="@GetCoordinate(cPair.Y + 0.5)" r="3" style="@style" />
   }
