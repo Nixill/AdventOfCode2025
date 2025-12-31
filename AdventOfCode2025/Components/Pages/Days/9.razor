@@ -49,8 +49,9 @@
 </p>
 
 <svg width="1100" height="1100" viewbox="-50 -50 1100 1100">
-  <rect x="@LargestRug.First.X" y="@LargestRug.First.Y" width="@(LargestRug.Second.X - LargestRug.First.X + 1)"
-    height="@(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
+  <rect x="@GetCoordinate(LargestRug.First.X)" y="@GetCoordinate(LargestRug.First.Y)"
+    width="@GetCoordinateLength(LargestRug.Second.X - LargestRug.First.X + 1)"
+    height="@GetCoordinateLength(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
   @foreach (IntVector2 cPair in Coordinates)
   {
     string style = (cPair == LargestRug.First ||cPair == LargestRug.Second)
@@ -96,6 +97,9 @@
 
   public double GetCoordinate(double from)
     => NumberUtils.ReLerp(from, LowCoordinate, HighCoordinate, 0, 1000);
+  
+  public double GetCoordinateLength(double fromLength)
+    => GetCoordinate(fromLength + LowCoordinate);
 
   void ParseFile(string fileName)
   {
