@@ -9,6 +9,7 @@
 @using Nixill.Objects
 @using Nixill.Utils
 @using Nixill.Utils.Extensions
+@using System.Text
 
 <h1>Day 9: Template</h1>
 
@@ -38,29 +39,33 @@
     Color="ButtonColor.Danger">here</Button>.
 </p>
 
-<p>
-  The largest rectangular rug possible between red tiles in this room covers an area of
-  <strong>@((LargestRug.Second.X - LargestRug.First.X + 1) * (LargestRug.Second.Y - LargestRug.First.Y + 1))</strong> tiles,
-  going from <strong>(@LargestRug.First)</strong> to <strong>(@LargestRug.Second)</strong>.
-</p>
+@if (Initialized)
+{
+  <p>
+    The largest rectangular rug possible between red tiles in this room covers an area of
+    <strong>@((LargestRug.Second.X - LargestRug.First.X + 1) * (LargestRug.Second.Y - LargestRug.First.Y + 1))</strong> tiles,
+    going from <strong>(@LargestRug.First)</strong> to <strong>(@LargestRug.Second)</strong>.
+  </p>
 
-<p>
-  The map of the room can be viewed below:
-</p>
+  <p>
+    The map of the room can be viewed below:
+  </p>
 
-<svg width="1100" height="1100" viewBox="-50 -50 1100 1100">
-  <rect x="@GetCoordinate(LargestRug.First.X)" y="@GetCoordinate(LargestRug.First.Y)"
-    width="@GetCoordinateLength(LargestRug.Second.X - LargestRug.First.X + 1)"
-    height="@GetCoordinateLength(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
-  @foreach (IntVector2 cPair in Coordinates)
-  {
-    string style = (cPair == LargestRug.First || cPair == LargestRug.Second ||
-      cPair == (LargestRug.First.X, LargestRug.Second.Y) ||
-      cPair == (LargestRug.Second.X, LargestRug.First.Y))
-      ? "fill: #c33; stroke-color: #000; stroke-width: 2px;" : "fill: #000; stroke: none";
-    <circle cx="@GetCoordinate(cPair.X + 0.5)" cy="@GetCoordinate(cPair.Y + 0.5)" r="3" style="@style" />
-  }
-</svg>
+  <svg width="1100" height="1100" viewBox="-50 -50 1100 1100">
+    <rect x="@GetCoordinate(LargestRug.First.X)" y="@GetCoordinate(LargestRug.First.Y)"
+      width="@GetCoordinateLength(LargestRug.Second.X - LargestRug.First.X + 1)"
+      height="@GetCoordinateLength(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
+    @foreach (IntVector2 cPair in Coordinates)
+    {
+      string style = (cPair == LargestRug.First || cPair == LargestRug.Second ||
+        cPair == (LargestRug.First.X, LargestRug.Second.Y) ||
+        cPair == (LargestRug.Second.X, LargestRug.First.Y))
+        ? "fill: #c33; stroke-color: #000; stroke-width: 2px;" : "fill: #000; stroke: none";
+      <circle cx="@GetCoordinate(cPair.X + 0.5)" cy="@GetCoordinate(cPair.Y + 0.5)" r="3" style="@style" />
+    }
+    <path d="@PathData" style="fill: none; stroke-color: #3c3; stroke-width: 2px;" />
+  </svg>
+}
 
 @code
 {
@@ -69,12 +74,17 @@
   int LowCoordinate = int.MaxValue;
   int HighCoordinate = int.MinValue;
   (IntVector2 First, IntVector2 Second) LargestRug = default;
+  string PathData = "";
+  bool Initialized = false;
 
   private void ParseInput()
   {
     Coordinates = [];
     LowCoordinate = int.MaxValue;
     HighCoordinate = int.MinValue;
+    Initialized = false;
+
+    StringBuilder pathDataBuilder = new();
 
     foreach (string line in TextValue.SplitLines())
     {
@@ -86,6 +96,8 @@
       }
     }
 
+    if (Coordinates.Count == 0) return;
+
     HighCoordinate += 1;
 
     LargestRug = Coordinates.Combinations(2)
@@ -95,6 +107,19 @@
     if (LargestRug.First.X > LargestRug.Second.X) LargestRug = (LargestRug.Second, LargestRug.First);
     if (LargestRug.First.Y > LargestRug.Second.Y)
       LargestRug = ((LargestRug.First.X, LargestRug.Second.Y), (LargestRug.Second.X, LargestRug.First.Y));
+
+    pathDataBuilder.Append($"M {GetCoordinate(Coordinates[0].X)} {GetCoordinate(Coordinates[0].Y)} ");
+
+    foreach (IntVector2 cPair in Coordinates.Skip(1))
+    {
+      pathDataBuilder.Append($"L {GetCoordinate(cPair.X)} {GetCoordinate(cPair.Y)} ");
+    }
+
+    pathDataBuilder.Append("Z");
+
+    PathData = pathDataBuilder.ToString();
+    
+    Initialized = true;
   }
 
   public double GetCoordinate(double from)
