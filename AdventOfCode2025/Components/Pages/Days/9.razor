@@ -48,6 +48,11 @@
   </p>
 
   <p>
+    Additionally, the rug formed by all red tiles in the room covers an area of
+    <strong>@(Field?.GetArea() ?? 0)</strong> tiles.
+  </p>
+
+  <p>
     The map of the room can be viewed below:
   </p>
 
@@ -55,15 +60,17 @@
     <rect x="@GetCoordinate(LargestRug.First.X)" y="@GetCoordinate(LargestRug.First.Y)"
       width="@GetCoordinateLength(LargestRug.Second.X - LargestRug.First.X + 1)"
       height="@GetCoordinateLength(LargestRug.Second.Y - LargestRug.First.Y + 1)" style="fill: #33c" />
-    @foreach (IntVector2 cPair in Coordinates)
-    {
-      string style = (cPair == LargestRug.First || cPair == LargestRug.Second ||
-        cPair == (LargestRug.First.X, LargestRug.Second.Y) ||
-        cPair == (LargestRug.Second.X, LargestRug.First.Y))
-        ? "fill: #c33; stroke-color: #000; stroke-width: 2px;" : "fill: #000; stroke: none";
-      <circle cx="@GetCoordinate(cPair.X + 0.5)" cy="@GetCoordinate(cPair.Y + 0.5)" r="3" style="@style" />
-    }
-    <path d="@PathData" style="fill: none; stroke-color: #3c3; stroke-width: 2px;" />
+    <g>
+      @foreach (IntVector2 cPair in Coordinates)
+      {
+        string style = (cPair == LargestRug.First || cPair == LargestRug.Second ||
+          cPair == (LargestRug.First.X, LargestRug.Second.Y) ||
+          cPair == (LargestRug.Second.X, LargestRug.First.Y))
+          ? "fill: #c33; stroke-color: #000; stroke-width: 2px;" : "fill: #000; stroke: none";
+        <circle cx="@GetCoordinate(cPair.X + 0.5)" cy="@GetCoordinate(cPair.Y + 0.5)" r="3" style="@style" />
+      }
+    </g>
+    <path d="@PathData" style="fill: #3c37; stroke: #3c3; stroke-width: 2px;" />
   </svg>
 }
 
@@ -76,12 +83,16 @@
   (IntVector2 First, IntVector2 Second) LargestRug = default;
   string PathData = "";
   bool Initialized = false;
+  D9Field? Field = null;
 
   private void ParseInput()
   {
     Coordinates = [];
     LowCoordinate = int.MaxValue;
     HighCoordinate = int.MinValue;
+    LargestRug = default;
+    PathData = "";
+    Field = null;
     Initialized = false;
 
     StringBuilder pathDataBuilder = new();
@@ -108,16 +119,18 @@
     if (LargestRug.First.Y > LargestRug.Second.Y)
       LargestRug = ((LargestRug.First.X, LargestRug.Second.Y), (LargestRug.Second.X, LargestRug.First.Y));
 
-    pathDataBuilder.Append($"M {GetCoordinate(Coordinates[0].X)} {GetCoordinate(Coordinates[0].Y)} ");
+    pathDataBuilder.Append($"M {GetCoordinate(Coordinates[0].X + 0.5)} {GetCoordinate(Coordinates[0].Y + 0.5)} ");
 
     foreach (IntVector2 cPair in Coordinates.Skip(1))
     {
-      pathDataBuilder.Append($"L {GetCoordinate(cPair.X)} {GetCoordinate(cPair.Y)} ");
+      pathDataBuilder.Append($"L {GetCoordinate(cPair.X + 0.5)} {GetCoordinate(cPair.Y + 0.5)} ");
     }
 
     pathDataBuilder.Append("Z");
 
     PathData = pathDataBuilder.ToString();
+
+    Field = new D9Field([.. Coordinates]);
     
     Initialized = true;
   }
@@ -137,5 +150,65 @@
   void ResetEverything()
   {
     TextValue = "";
+    Coordinates = [];
+    LowCoordinate = int.MaxValue;
+    HighCoordinate = int.MinValue;
+    LargestRug = default;
+    PathData = "";
+    Initialized = false;
+    Field = null;
+  }
+
+  public class D9Field
+  {
+    AVLTreeDictionary<long, AVLTreeSet<long>> Coordinates = new();
+    DictionaryGenerator<long, AVLTreeSet<long>> GenCoords;
+    long Perimeter = 0;
+
+    public D9Field(IntVector2[] coordinates)
+    {
+      GenCoords = new(Coordinates, new EmptyConstructorGenerator<long, AVLTreeSet<long>>());
+
+      int x = coordinates[^1].X;
+      int y = coordinates[^1].Y;
+
+      foreach ((int cx, int cy) in coordinates.Select(c => c.ToXY()))
+      {
+        GenCoords[x].Add(y);
+        Perimeter += int.Abs(x - cx) + int.Abs(y - cy);
+        x = cx;
+        y = cy;
+      }
+    }
+
+    public long GetArea()
+    {
+      long area = 0;
+      long currentArea = 0;
+      AVLTreeSet<long> currentBounds = new();
+
+      long lastX = Coordinates.LowestKey();
+
+      foreach ((long x, AVLTreeSet<long> lineX) in Coordinates)
+      {
+        area += currentArea * (x - lastX);
+
+        foreach (long y in lineX)
+        {
+          if (currentBounds.Contains(y)) currentBounds.Remove(y);
+          else currentBounds.Add(y);
+        }
+
+        currentArea = 0;
+        foreach (long[] twoY in currentBounds.Chunk(2))
+        {
+          currentArea += twoY[1] - twoY[0];
+        }
+
+        lastX = x;
+      }
+
+      return area + Perimeter / 2 + 1;
+    }
   }
 }
