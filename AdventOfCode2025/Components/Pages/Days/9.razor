@@ -81,9 +81,9 @@
         LowCoordinate = int.Min(int.Min(value.X, value.Y), LowCoordinate);
         HighCoordinate = int.Max(int.Max(value.X, value.Y), HighCoordinate);
       }
-
-      HighCoordinate += 1;
     }
+
+    HighCoordinate += 1;
 
     LargestRug = Coordinates.Combinations(2)
       .Select(e => e.Double())
